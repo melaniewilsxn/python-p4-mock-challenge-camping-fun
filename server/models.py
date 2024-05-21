@@ -52,6 +52,12 @@ class Camper(db.Model, SerializerMixin):
     serialize_rules = ('-signups.camper',)
 
     # Add validation
+    @validates('name')
+    def validate_name(self, key, name):
+        if not name or len(name) < 1:
+            raise ValueError('Name must be a non-empty string.')
+        return name
+
     @validates('age')
     def validate_age(self, key, age):
         if not 8 <= age <= 18:

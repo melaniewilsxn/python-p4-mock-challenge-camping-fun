@@ -25,35 +25,33 @@ api = Api(app)
 class CampersIndex(Resource):
     def get(self):
         campers = [camper.to_dict(only=('id', 'name', 'age')) for camper in Camper.query.all()]
-        return campers, 201
+        return campers, 200
     
     def post(self):
-        try:
+        try: 
             request_json = request.get_json()
             
             name = request_json.get('name')
             age = request_json.get('age')
 
-            camper = Camper(
+            new_camper = Camper(
                 name=name,
                 age=age
             )
 
-            db.session.add(camper)
+            db.session.add(new_camper)
             db.session.commit()
-
-            return camper.to_dict(only=('id', 'name', 'age')), 201
-        except ValueError as e:
-            return {'error': str(e)}, 400
-        except Exception as e:
-            return {'error': 'Internal server error'}, 500
+            
+            return new_camper.to_dict(only=("id", "name", "age")), 201
+        except: 
+            return { "errors": "400: Validation error"}, 400
 
 class CampersByID(Resource):
     def get(self, id):
         camper = Camper.query.filter_by(id=id).first()
         if camper:
             return camper.to_dict(), 200
-        return {"error": "Camper not found"}, 401
+        return {"error": "Camper not found"}, 404
     
     def patch(self, id):
         try:
@@ -67,11 +65,11 @@ class CampersByID(Resource):
             db.session.add(camper)
             db.session.commit()
 
-            return camper.to_dict(), 201
+            return camper.to_dict(), 202
         except ValueError as e:
-            return {'error': str(e)}, 400
+            return {"errors": ["validation errors"]}, 400
         except Exception as e:
-            return {"error": "Camper not found"}, 401
+            return {"error": "Camper not found"}, 404
 
 class ActivitiesIndex(Resource):
     def get(self):
@@ -86,9 +84,9 @@ class ActivitiesByID(Resource):
             db.session.delete(activity)
             db.session.commit()
 
-            return {}, 200
+            return {}, 204
         else:
-            return {"error": "Activity not found"}, 401
+            return {"error": "Activity not found"}, 404
 
 class SignupIndex(Resource):
     def post(self):
@@ -110,7 +108,7 @@ class SignupIndex(Resource):
 
             return signup.to_dict(), 200
         except ValueError as e:
-            return {'error': str(e)}, 401
+            return {"errors": ["validation errors"]}, 400
     
 api.add_resource(CampersIndex, '/campers', endpoint='campers')
 api.add_resource(CampersByID, '/campers/<int:id>', endpoint='campers_by_id')
